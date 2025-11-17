@@ -46,26 +46,48 @@ public class PlayerController : MonoBehaviour
         {
             isGrounded = true;
         }
-        // 장애물 충돌 감지 - 새로 추가!
+        // 장애물 충돌 시 생명 감소로 변경!
         if (collision.gameObject.CompareTag("Obstacle"))
         {
-            Debug.Log("⚠️ 장애물 충돌! 시작 지점으로 돌아갑니다.");
-
-            // 시작 위치로 순간이동
-            transform.position = startPosition;
-
-            // 속도 초기화 (안 하면 계속 날아감)
-            rb.linearVelocity = new Vector2(0, 0);
-        }
-
-        void OnCollisionExit2D(Collision2D collision)
-        {
-            if (collision.gameObject.CompareTag("Ground"))
+            Debug.Log("⚠️ 장애물 충돌! 생명 -1");
+            // GameManager 찾아서 생명 감소
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            
+            if (gameManager != null)
             {
-                isGrounded = false;
+                gameManager.TakeDamage(1);  // 생명 1 감소
+            }
+            
+            // 짧은 무적 시간 (0.5초 후 원래 위치로)
+            transform.position = startPosition;
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // 코인 수집 (기존)
+        if (other.CompareTag("Coin"))
+        {
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (gameManager != null)
+            {
+                gameManager.AddScore(10);
+            }
+            Destroy(other.gameObject);
+        }
+        // 골 도달 - 새로 추가!
+        if (other.CompareTag("Goal"))
+        {
+            Debug.Log("🎉 Goal Reached!");
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (gameManager != null)
+            {
+                gameManager.GameClear();  // 게임 클리어 함수 호출
             }
         }
     }
+}
     // 아이템 수집 감지 (Trigger)
     
-}
+
